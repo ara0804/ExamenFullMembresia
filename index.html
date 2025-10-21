@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Full Membresía AIESEC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // INSTRUCCIONES: Reemplaza esta URL con la URL de tu Google Apps Script
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/aiesec.net/s/AKfycbz80uARNF1bWEBZDDWIA0M1bUPxyyXy6-M8bYY5FCKrM8Ij-FZCPNbHnVwJWKW_zHse3A/exec';
+
+        const AlertCircle = () => (
+            <svg className="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const CheckCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const Send = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+        );
+
+        const Loader = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
+
+        function AiesecExamForm() {
+            const [formData, setFormData] = useState({
+                nombre: '',
+                area: '',
+                fecha: new Date().toISOString().split('T')[0]
+            });
+            
+            const [answers, setAnswers] = useState({});
+            const [submitted, setSubmitted] = useState(false);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [currentSection, setCurrentSection] = useState(0);
+            const [error, setError] = useState('');
+
+            const sections = [
+                {
+                    title: "Historia y Fundamentos",
+                    questions: [
+                        {
+                            id: 'q1',
+                            text: '¿En qué año AIESEC comenzó a activar el liderazgo?',
+                            type: 'multiple',
+                            options: ['1945', '1947', '1948', '1950']
+                        },
+                        {
+                            id: 'q2',
+                            text: 'Selecciona los 7 países de origen de los estudiantes fundadores de AIESEC:',
+                            type: 'checkbox',
+                            options: ['Bélgica', 'Dinamarca', 'Alemania', 'Finlandia', 'Países Bajos', 'Suecia', 'Irlanda', 'Canadá', 'Noruega', 'Francia', 'Estados Unidos','Holanda']
+                        },
+                        {
+                            id: 'q3',
+                            text: 'Describe los componentes del "Golden Circle" de AIESEC:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q4',
+                            text: '¿Cuál es el "Why" (propósito) de AIESEC?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q5',
+                            text: '¿Cuál es el "How" (cómo lo hacemos) de AIESEC?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q6',
+                            text: 'Enumera los valores fundamentales de AIESEC:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q7',
+                            text: 'Selecciona las 4 características que definen a AIESEC como organización:',
+                            type: 'checkbox',
+                            options: ['Global', 'Gubernamental', 'Independiente', 'No partidaria', 'Sin fines de lucro', 'Democrática']
+                        }
+                    ]
+                },
+                {
+                    title: "Estructura y Programas",
+                    questions: [
+                        {
+                            id: 'q8',
+                            text: 'Describe cómo está compuesto el sistema de AIESEC:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q9',
+                            text: 'Menciona los 4 programas oficiales de AIESEC:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q10',
+                            text: '¿Cuáles son los Statements de A2025?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q11',
+                            text: '¿Cuáles son los Statements de A2030?',
+                            type: 'textarea'
+                        }
+                    ]
+                },
+                {
+                    title: "Terminología y Acrónimos",
+                    questions: [
+                        {
+                            id: 'q12',
+                            text: 'Define los siguientes acrónimos: BCP, NPS, LPS, ICB, BOL, BOP, KPIs, EB, VP, LCP',
+                            type: 'textarea',
+                            placeholder: 'Escribe cada acrónimo y su significado'
+                        },
+                        {
+                            id: 'q13',
+                            text: 'Enumera los diferentes Partners Status:',
+                            type: 'textarea'
+                        }
+                    ]
+                },
+                {
+                    title: "Estándares y Procesos",
+                    questions: [
+                        {
+                            id: 'q14',
+                            text: '¿Cuáles son las esferas de los MX Standards?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q15',
+                            text: 'Menciona al menos 5 estándares de MXP (Member Experience):',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q16',
+                            text: 'Menciona 6 Exchange Standards:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q17',
+                            text: 'Describe las fases del Customer Flow:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q18',
+                            text: 'Menciona 3 Finance Standards:',
+                            type: 'textarea'
+                        }
+                    ]
+                },
+                {
+                    title: "Código de Ética",
+                    questions: [
+                        {
+                            id: 'q19',
+                            text: '¿Cuál es el objeto principal del código de ética de AIESEC?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q20',
+                            text: 'Menciona 3 comportamientos prohibidos para voluntarios en eventos locales:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q21',
+                            text: '¿Qué tipo de situaciones son consideradas casos de ética?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q22',
+                            text: 'Menciona 3 prohibiciones respecto a publicaciones en redes sociales:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q23',
+                            text: 'Menciona las 2 conductas que causan la expulsión inmediata de un miembro:',
+                            type: 'textarea'
+                        }
+                    ]
+                },
+                {
+                    title: "Compendio Nacional",
+                    questions: [
+                        {
+                            id: 'q24',
+                            text: '¿Cuáles son las clasificaciones de las entidades en AIESEC?',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q25',
+                            text: 'Menciona al menos 4 criterios de Full Membresía de los comités locales:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q26',
+                            text: 'Enumera los subcomités a nivel nacional:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q27',
+                            text: 'Menciona al menos 3 funciones del Presidente Local:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q28',
+                            text: 'Menciona al menos 3 funciones del Vicepresidente Local:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q29',
+                            text: 'Menciona los tipos de asamblea que existen:',
+                            type: 'textarea'
+                        }
+                    ]
+                },
+                {
+                    title: "AIESEC en Bolivia",
+                    questions: [
+                        {
+                            id: 'q30',
+                            text: '¿En qué año fue fundado AIESEC Bolivia?',
+                            type: 'text'
+                        },
+                        {
+                            id: 'q31',
+                            text: '¿Cuántas conferencias nacionales oficiales tiene AIESEC Bolivia? Menciónalas:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q32',
+                            text: '¿Cómo se llama el fundador de AIESEC en Bolivia?',
+                            type: 'text'
+                        },
+                        {
+                            id: 'q33',
+                            text: 'Menciona 4 criterios para ser Full Member local:',
+                            type: 'textarea'
+                        },
+                        {
+                            id: 'q34',
+                            text: '¿Qué significa ECB y cuál es su objetivo principal?',
+                            type: 'textarea'
+                        }
+                    ]
+                }
+            ];
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleAnswerChange = (questionId, value, isCheckbox = false) => {
+                if (isCheckbox) {
+                    setAnswers(prev => {
+                        const current = prev[questionId] || [];
+                        const newValue = current.includes(value)
+                            ? current.filter(v => v !== value)
+                            : [...current, value];
+                        return { ...prev, [questionId]: newValue };
+                    });
+                } else {
+                    setAnswers(prev => ({ ...prev, [questionId]: value }));
+                }
+            };
+
+            const handleSubmit = async () => {
+                if (!formData.nombre || !formData.area) {
+                    setError('Por favor completa tu nombre y área antes de enviar');
+                    setCurrentSection(0);
+                    return;
+                }
+
+                setIsSubmitting(true);
+                setError('');
+
+                try {
+                    const dataToSend = {
+                        timestamp: new Date().toISOString(),
+                        nombre: formData.nombre,
+                        area: formData.area,
+                        fecha: formData.fecha,
+                        ...answers
+                    };
+
+                    Object.keys(dataToSend).forEach(key => {
+                        if (Array.isArray(dataToSend[key])) {
+                            dataToSend[key] = dataToSend[key].join(', ');
+                        }
+                    });
+
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(dataToSend)
+                    });
+
+                    setSubmitted(true);
+                    
+                } catch (err) {
+                    console.error('Error al enviar:', err);
+                    setError('Hubo un error al enviar el formulario. Por favor intenta nuevamente.');
+                    setIsSubmitting(false);
+                }
+            };
+
+            const goToSection = (index) => {
+                setCurrentSection(index);
+            };
+
+            const nextSection = () => {
+                if (currentSection < sections.length - 1) {
+                    setCurrentSection(currentSection + 1);
+                }
+            };
+
+            const prevSection = () => {
+                if (currentSection > 0) {
+                    setCurrentSection(currentSection - 1);
+                }
+            };
+
+            if (submitted) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+                        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8 text-center">
+                            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+                            <h2 className="text-3xl font-bold text-gray-800 mb-4">¡Examen Enviado Exitosamente!</h2>
+                            <p className="text-gray-600 mb-6">
+                                Gracias <strong>{formData.nombre}</strong> por completar el examen de Full Membresía.
+                                Tu evaluador revisará tus respuestas y te contactará pronto con los resultados.
+                            </p>
+                            <p className="text-sm text-gray-500 mb-4">
+                                Recuerda que necesitas una puntuación mayor a 80 para aprobar.
+                            </p>
+                            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                <p className="text-sm text-blue-800">
+                                    📧 Tus respuestas han sido guardadas y el equipo de AIESEC las revisará pronto.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const currentSectionData = sections[currentSection];
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8">
+                                <h1 className="text-3xl font-bold mb-2">Examen Full Membresía</h1>
+                                <p className="text-blue-100">AIESEC en SANTA CRUZ</p>
+                                <div className="mt-4 p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+                                    <p className="text-sm">
+                                        <AlertCircle />
+                                        Para aprobar este examen necesitas una puntuación mayor a 80
+                                    </p>
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="p-4 bg-red-50 border-l-4 border-red-500 m-6">
+                                    <p className="text-red-700">{error}</p>
+                                </div>
+                            )}
+
+                            {currentSection === 0 && (
+                                <div className="p-8 bg-gray-50 border-b">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-800">Información Personal</h3>
+                                    <div className="grid md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Nombre Completo *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="nombre"
+                                                value={formData.nombre}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Área *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="area"
+                                                value={formData.area}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Fecha
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="fecha"
+                                                value={formData.fecha}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="p-6 bg-gray-50 border-b">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-medium text-gray-700">
+                                        Sección {currentSection + 1} de {sections.length}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                        {Math.round(((currentSection + 1) / sections.length) * 100)}% Completado
+                                    </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                        style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-white border-b overflow-x-auto">
+                                <div className="flex gap-2 min-w-max">
+                                    {sections.map((section, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => goToSection(index)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                                                currentSection === index
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {section.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="p-8">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                                    {currentSectionData.title}
+                                </h2>
+
+                                <div className="space-y-8">
+                                    {currentSectionData.questions.map((question, idx) => (
+                                        <div key={question.id} className="bg-gray-50 p-6 rounded-lg">
+                                            <label className="block text-gray-800 font-medium mb-3">
+                                                {idx + 1}. {question.text}
+                                            </label>
+
+                                            {question.type === 'multiple' && (
+                                                <div className="space-y-2">
+                                                    {question.options.map((option, optIdx) => (
+                                                        <label key={optIdx} className="flex items-center p-3 bg-white rounded-lg hover:bg-blue-50 cursor-pointer transition-colors">
+                                                            <input
+                                                                type="radio"
+                                                                name={question.id}
+                                                                value={option}
+                                                                checked={answers[question.id] === option}
+                                                                onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                                                className="mr-3 w-4 h-4 text-blue-600"
+                                                            />
+                                                            <span className="text-gray-700">{option}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {question.type === 'checkbox' && (
+                                                <div className="space-y-2">
+                                                    {question.options.map((option, optIdx) => (
+                                                        <label key={optIdx} className="flex items-center p-3 bg-white rounded-lg hover:bg-blue-50 cursor-pointer transition-colors">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={(answers[question.id] || []).includes(option)}
+                                                                onChange={() => handleAnswerChange(question.id, option, true)}
+                                                                className="mr-3 w-4 h-4 text-blue-600 rounded"
+                                                            />
+                                                            <span className="text-gray-700">{option}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {question.type === 'textarea' && (
+                                                <textarea
+                                                    value={answers[question.id] || ''}
+                                                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                                    placeholder={question.placeholder || 'Escribe tu respuesta aquí...'}
+                                                    rows={4}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                                />
+                                            )}
+
+                                            {question.type === 'text' && (
+                                                <input
+                                                    type="text"
+                                                    value={answers[question.id] || ''}
+                                                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex justify-between mt-8 pt-6 border-t">
+                                    <button
+                                        onClick={prevSection}
+                                        disabled={currentSection === 0}
+                                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        ← Anterior
+                                    </button>
+
+                                    {currentSection < sections.length - 1 ? (
+                                        <button
+                                            onClick={nextSection}
+                                            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                        >
+                                            Siguiente →
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleSubmit}
+                                            disabled={isSubmitting}
+                                            className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader className="w-5 h-5 animate-spin" />
+                                                    Enviando...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Send className="w-5 h-5" />
+                                                    Enviar Examen
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 text-center text-gray-600 text-sm">
+                            <p>¡Mucha suerte en tu proceso de Full Membresía! 🚀</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AiesecExamForm />, document.getElementById('root'));
+    </script>
+</body>
+</html>
